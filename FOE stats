@@ -1,0 +1,1641 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FoE Gilde Stats</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Barlow:wght@300;400;500;600&family=Barlow+Condensed:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --gold: #c9a84c;
+    --gold-light: #e8c97a;
+    --gold-dark: #8a6a20;
+    --bg-dark: #0d0f14;
+    --bg-mid: #141720;
+    --bg-card: #1a1e2e;
+    --bg-card2: #1f2438;
+    --border: rgba(201,168,76,0.25);
+    --border-bright: rgba(201,168,76,0.6);
+    --text: #d4d8e8;
+    --text-muted: #7a8099;
+    --accent: #4a9eff;
+    --accent2: #ff6b35;
+    --green: #3ecf72;
+    --red: #ff4757;
+    --shadow: 0 8px 32px rgba(0,0,0,0.6);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Barlow', sans-serif;
+    background: var(--bg-dark);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Background texture */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse at 20% 20%, rgba(201,168,76,0.04) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 80%, rgba(74,158,255,0.04) 0%, transparent 50%),
+      repeating-linear-gradient(
+        45deg,
+        transparent,
+        transparent 40px,
+        rgba(255,255,255,0.008) 40px,
+        rgba(255,255,255,0.008) 41px
+      );
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ── HEADER ── */
+  header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(13,15,20,0.92);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 2rem;
+  }
+
+  .header-inner {
+    max-width: 1400px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+    height: 64px;
+  }
+
+  .logo {
+    font-family: 'Cinzel', serif;
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--gold);
+    letter-spacing: 0.08em;
+    white-space: nowrap;
+    text-shadow: 0 0 20px rgba(201,168,76,0.4);
+  }
+
+  .logo span { color: var(--text-muted); font-weight: 400; font-size: 0.8em; }
+
+  nav { display: flex; gap: 0.25rem; flex: 1; }
+
+  nav button {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: all 0.2s;
+    position: relative;
+  }
+
+  nav button::after {
+    content: '';
+    position: absolute;
+    bottom: 2px; left: 50%; right: 50%;
+    height: 2px;
+    background: var(--gold);
+    transition: all 0.2s;
+  }
+
+  nav button:hover { color: var(--text); }
+  nav button.active { color: var(--gold); }
+  nav button.active::after { left: 1rem; right: 1rem; }
+
+  .header-actions { display: flex; gap: 0.75rem; align-items: center; margin-left: auto; }
+
+  .btn-import {
+    background: linear-gradient(135deg, var(--gold-dark), var(--gold));
+    color: #000;
+    border: none;
+    padding: 0.45rem 1.25rem;
+    border-radius: 4px;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 0.85rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-import:hover { filter: brightness(1.15); transform: translateY(-1px); }
+
+  .world-badge {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    background: var(--bg-card2);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    padding: 0.35rem 0.85rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .world-badge:hover { border-color: var(--border-bright); color: var(--gold); }
+
+  /* ── MAIN ── */
+  main {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 2rem;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ── PAGES ── */
+  .page { display: none; }
+  .page.active { display: block; animation: fadeIn 0.3s ease; }
+
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+  /* ── SECTION TITLE ── */
+  .section-title {
+    font-family: 'Cinzel', serif;
+    font-size: 1.1rem;
+    color: var(--gold);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  .section-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+  /* ── STAT CARDS ROW ── */
+  .stat-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+
+  .stat-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.25rem 1.5rem;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+  .stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--gold), transparent);
+    opacity: 0.6;
+  }
+  .stat-card:hover { border-color: var(--border-bright); }
+
+  .stat-label {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 0.5rem;
+  }
+  .stat-value {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 1.9rem;
+    font-weight: 700;
+    color: var(--gold-light);
+    line-height: 1;
+  }
+  .stat-sub {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    margin-top: 0.3rem;
+  }
+  .stat-delta { font-size: 0.78rem; margin-top: 0.3rem; }
+  .delta-up { color: var(--green); }
+  .delta-down { color: var(--red); }
+
+  /* ── TABLE ── */
+  .table-wrap {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 2rem;
+  }
+
+  .table-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--border);
+    gap: 1rem;
+  }
+
+  .table-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 0.95rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text);
+  }
+
+  .search-box {
+    background: var(--bg-dark);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 0.4rem 0.85rem;
+    border-radius: 4px;
+    font-family: 'Barlow', sans-serif;
+    font-size: 0.85rem;
+    width: 200px;
+    transition: border-color 0.2s;
+  }
+  .search-box:focus { outline: none; border-color: var(--gold); }
+  .search-box::placeholder { color: var(--text-muted); }
+
+  table { width: 100%; border-collapse: collapse; }
+
+  thead th {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    padding: 0.7rem 1.5rem;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    user-select: none;
+    white-space: nowrap;
+  }
+  thead th:hover { color: var(--gold); }
+  thead th .sort-icon { opacity: 0.4; margin-left: 4px; }
+  thead th.sort-asc .sort-icon, thead th.sort-desc .sort-icon { opacity: 1; color: var(--gold); }
+
+  tbody tr {
+    border-bottom: 1px solid rgba(201,168,76,0.08);
+    transition: background 0.15s;
+    cursor: pointer;
+  }
+  tbody tr:hover { background: rgba(201,168,76,0.04); }
+  tbody tr:last-child { border-bottom: none; }
+
+  td {
+    padding: 0.75rem 1.5rem;
+    font-size: 0.9rem;
+  }
+
+  .rank-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px; height: 28px;
+    border-radius: 4px;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 0.9rem;
+  }
+  .rank-1 { background: rgba(201,168,76,0.2); color: var(--gold); border: 1px solid var(--gold); }
+  .rank-2 { background: rgba(192,192,192,0.1); color: #ccc; border: 1px solid #888; }
+  .rank-3 { background: rgba(176,141,87,0.15); color: #b08d57; border: 1px solid #b08d57; }
+  .rank-n { background: var(--bg-dark); color: var(--text-muted); border: 1px solid var(--border); }
+
+  .player-name { font-weight: 600; color: var(--text); }
+  .guild-tag { font-size: 0.78rem; color: var(--text-muted); margin-left: 0.4rem; }
+  .era-badge {
+    display: inline-block;
+    padding: 0.15rem 0.5rem;
+    border-radius: 3px;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    background: rgba(74,158,255,0.12);
+    color: var(--accent);
+    border: 1px solid rgba(74,158,255,0.25);
+  }
+
+  .num { font-family: 'Barlow Condensed', sans-serif; font-size: 0.95rem; }
+  .num-positive { color: var(--green); }
+  .num-negative { color: var(--red); }
+
+  /* ── GB TABLE ── */
+  .gb-level {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+  .gb-lvl-num {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 1rem;
+    color: var(--gold-light);
+  }
+  .gb-name { font-weight: 500; }
+  .gb-bar-wrap { width: 100px; background: rgba(255,255,255,0.06); border-radius: 2px; height: 4px; }
+  .gb-bar { height: 4px; border-radius: 2px; background: linear-gradient(90deg, var(--gold-dark), var(--gold)); }
+
+  /* ── GBG SECTION ── */
+  .gbg-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+  @media (max-width: 768px) { .gbg-grid { grid-template-columns: 1fr; } }
+
+  .gbg-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.25rem;
+  }
+
+  .gbg-player-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+  }
+  .gbg-player-row:last-child { border-bottom: none; }
+
+  .gbg-avatar {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--gold-dark), var(--bg-card2));
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 0.85rem;
+    color: var(--gold);
+    flex-shrink: 0;
+  }
+
+  .gbg-player-info { flex: 1; min-width: 0; }
+  .gbg-player-name { font-weight: 500; font-size: 0.88rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .gbg-player-meta { font-size: 0.75rem; color: var(--text-muted); }
+
+  .gbg-stat {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: var(--gold-light);
+    flex-shrink: 0;
+  }
+
+  /* ── PROGRESS SECTION ── */
+  .progress-chart {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+  }
+
+  .sparkline-wrap {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1rem;
+  }
+
+  .sparkline-card {
+    background: var(--bg-dark);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 1rem;
+  }
+
+  .sparkline-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 0.75rem;
+  }
+
+  .sparkline-name { font-weight: 600; font-size: 0.88rem; }
+  .sparkline-total {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    color: var(--gold-light);
+    font-size: 1.05rem;
+  }
+
+  canvas.sparkline {
+    width: 100%;
+    height: 48px;
+    display: block;
+  }
+
+  /* ── IMPORT MODAL ── */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.75);
+    z-index: 1000;
+    backdrop-filter: blur(4px);
+    align-items: center;
+    justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+
+  .modal {
+    background: var(--bg-card);
+    border: 1px solid var(--border-bright);
+    border-radius: 12px;
+    padding: 2rem;
+    width: min(600px, 94vw);
+    max-height: 85vh;
+    overflow-y: auto;
+    box-shadow: var(--shadow), 0 0 40px rgba(201,168,76,0.08);
+    animation: slideIn 0.25s ease;
+  }
+
+  @keyframes slideIn { from { opacity: 0; transform: translateY(-20px) scale(0.97); } to { opacity: 1; transform: none; } }
+
+  .modal-title {
+    font-family: 'Cinzel', serif;
+    font-size: 1.1rem;
+    color: var(--gold);
+    margin-bottom: 1.25rem;
+    letter-spacing: 0.08em;
+  }
+
+  .import-tabs { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; border-bottom: 1px solid var(--border); padding-bottom: 0; }
+  .import-tab {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 600;
+    font-size: 0.85rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    transition: all 0.2s;
+  }
+  .import-tab.active { color: var(--gold); border-bottom-color: var(--gold); }
+
+  .import-pane { display: none; }
+  .import-pane.active { display: block; }
+
+  .form-group { margin-bottom: 1rem; }
+  .form-label {
+    display: block;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 0.4rem;
+  }
+
+  .form-input, .form-select, .form-textarea {
+    width: 100%;
+    background: var(--bg-dark);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 0.55rem 0.9rem;
+    border-radius: 4px;
+    font-family: 'Barlow', sans-serif;
+    font-size: 0.9rem;
+    transition: border-color 0.2s;
+  }
+  .form-input:focus, .form-select:focus, .form-textarea:focus {
+    outline: none;
+    border-color: var(--gold);
+  }
+  .form-textarea { min-height: 120px; resize: vertical; font-size: 0.8rem; font-family: monospace; }
+  .form-select option { background: var(--bg-card); }
+
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+
+  .drop-zone {
+    border: 2px dashed var(--border);
+    border-radius: 8px;
+    padding: 2rem;
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 0.88rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-bottom: 1rem;
+  }
+  .drop-zone:hover { border-color: var(--gold); color: var(--text); }
+  .drop-zone svg { margin-bottom: 0.5rem; opacity: 0.5; }
+
+  .btn-row { display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1.5rem; }
+
+  .btn-primary {
+    background: linear-gradient(135deg, var(--gold-dark), var(--gold));
+    color: #000;
+    border: none;
+    padding: 0.55rem 1.5rem;
+    border-radius: 4px;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 0.9rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-primary:hover { filter: brightness(1.1); }
+
+  .btn-secondary {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    padding: 0.55rem 1.25rem;
+    border-radius: 4px;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 600;
+    font-size: 0.9rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-secondary:hover { border-color: var(--border-bright); color: var(--text); }
+
+  .hint-box {
+    background: rgba(74,158,255,0.07);
+    border: 1px solid rgba(74,158,255,0.2);
+    border-radius: 6px;
+    padding: 0.9rem 1rem;
+    font-size: 0.82rem;
+    color: #7ab8ff;
+    margin-bottom: 1rem;
+    line-height: 1.5;
+  }
+
+  /* ── EMPTY STATE ── */
+  .empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+    color: var(--text-muted);
+  }
+  .empty-state svg { margin-bottom: 1rem; opacity: 0.3; }
+  .empty-state h3 {
+    font-family: 'Cinzel', serif;
+    color: var(--text-muted);
+    margin-bottom: 0.5rem;
+  }
+  .empty-state p { font-size: 0.88rem; line-height: 1.6; }
+
+  /* ── TOOLTIP ── */
+  [title] { cursor: help; }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 900px) {
+    .header-inner { padding: 0; }
+    nav { display: none; }
+    main { padding: 1rem; }
+    .stat-row { grid-template-columns: repeat(2, 1fr); }
+    td, th { padding: 0.6rem 0.75rem; }
+  }
+
+  /* ── LAST UPDATED ── */
+  .last-updated {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    text-align: right;
+    margin-bottom: 1rem;
+  }
+  .status-dot {
+    display: inline-block;
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--green);
+    margin-right: 0.4rem;
+    vertical-align: middle;
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  /* ── TABS inside sections ── */
+  .sub-tabs { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; }
+  .sub-tab {
+    background: var(--bg-card2);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 600;
+    font-size: 0.82rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 0.4rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .sub-tab.active { background: rgba(201,168,76,0.1); border-color: var(--gold); color: var(--gold); }
+  .sub-tab:hover:not(.active) { color: var(--text); }
+
+  .inline-tag {
+    display: inline-block;
+    padding: 0.1rem 0.4rem;
+    border-radius: 3px;
+    font-size: 0.72rem;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+  .tag-gold { background: rgba(201,168,76,0.12); color: var(--gold); border: 1px solid rgba(201,168,76,0.3); }
+  .tag-blue { background: rgba(74,158,255,0.12); color: var(--accent); border: 1px solid rgba(74,158,255,0.3); }
+  .tag-orange { background: rgba(255,107,53,0.12); color: var(--accent2); border: 1px solid rgba(255,107,53,0.3); }
+
+  /* ── WORLD SELECTOR MODAL ── */
+  .world-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: 0.5rem;
+    max-height: 300px;
+    overflow-y: auto;
+    padding-right: 0.25rem;
+  }
+  .world-item {
+    background: var(--bg-dark);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 0.5rem 0.75rem;
+    cursor: pointer;
+    font-size: 0.82rem;
+    transition: all 0.15s;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+  }
+  .world-item:hover, .world-item.selected { border-color: var(--gold); color: var(--gold); background: rgba(201,168,76,0.07); }
+  .world-server { font-size: 0.7rem; color: var(--text-muted); display: block; font-weight: 400; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="logo">⚔ FoE Stats <span>/ Gilde Dashboard</span></div>
+    <nav id="mainNav">
+      <button class="active" onclick="showPage('overview', this)">Overzicht</button>
+      <button onclick="showPage('players', this)">Spelers</button>
+      <button onclick="showPage('guild', this)">Gilde</button>
+      <button onclick="showPage('buildings', this)">Grote Gebouwen</button>
+      <button onclick="showPage('gbg', this)">GBG</button>
+      <button onclick="showPage('progress', this)">Progressie</button>
+    </nav>
+    <div class="header-actions">
+      <button class="world-badge" onclick="openWorldModal()" id="worldBtn">🌍 Wereld kiezen</button>
+      <button class="btn-import" onclick="openImport()">＋ Data importeren</button>
+    </div>
+  </div>
+</header>
+
+<main>
+
+  <!-- ── OVERVIEW PAGE ── -->
+  <div class="page active" id="page-overview">
+    <div class="last-updated" id="lastUpdated" style="display:none">
+      <span class="status-dot"></span>Bijgewerkt: <span id="updateTime">—</span>
+    </div>
+
+    <div class="stat-row" id="overviewStats">
+      <div class="stat-card">
+        <div class="stat-label">Gilde Punten</div>
+        <div class="stat-value" id="ov-points">—</div>
+        <div class="stat-sub" id="ov-points-rank">Importeer data om te beginnen</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Aantal Leden</div>
+        <div class="stat-value" id="ov-members">—</div>
+        <div class="stat-sub" id="ov-members-sub">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Top Speler</div>
+        <div class="stat-value" id="ov-top-player" style="font-size:1.2rem;">—</div>
+        <div class="stat-sub" id="ov-top-sub">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">GBG Sectoren</div>
+        <div class="stat-value" id="ov-gbg">—</div>
+        <div class="stat-sub" id="ov-gbg-sub">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Totaal Gevechten</div>
+        <div class="stat-value" id="ov-battles">—</div>
+        <div class="stat-sub" id="ov-battles-sub">—</div>
+      </div>
+    </div>
+
+    <div id="overviewEmpty" class="empty-state">
+      <svg width="56" height="56" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.2">
+        <path d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+      </svg>
+      <h3>Geen data geladen</h3>
+      <p>Klik op <strong style="color:var(--gold)">＋ Data importeren</strong> om te beginnen.<br>Ondersteunt FoE Helper JSON export of handmatig invoeren.</p>
+    </div>
+
+    <div id="overviewContent" style="display:none">
+      <div class="section-title">Top 5 Spelers</div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Speler</th>
+              <th>Era</th>
+              <th>Punten</th>
+              <th>Gevechten</th>
+              <th>Δ Punten</th>
+            </tr>
+          </thead>
+          <tbody id="overviewTop5"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── PLAYERS PAGE ── -->
+  <div class="page" id="page-players">
+    <div class="sub-tabs">
+      <button class="sub-tab active" onclick="switchSubTab('players', 'ranking', this)">Ranking</button>
+      <button class="sub-tab" onclick="switchSubTab('players', 'battles', this)">Gevechten</button>
+      <button class="sub-tab" onclick="switchSubTab('players', 'eras', this)">Per Era</button>
+    </div>
+
+    <div class="table-wrap">
+      <div class="table-header">
+        <div class="table-title" id="playersTableTitle">Speler Rankings</div>
+        <input class="search-box" type="text" placeholder="Zoek speler…" oninput="filterTable('playersTable', this.value)">
+      </div>
+      <table id="playersTable">
+        <thead>
+          <tr>
+            <th onclick="sortTable('playersTable',0)" title="Rang"># <span class="sort-icon">↕</span></th>
+            <th onclick="sortTable('playersTable',1)">Speler <span class="sort-icon">↕</span></th>
+            <th onclick="sortTable('playersTable',2)">Era <span class="sort-icon">↕</span></th>
+            <th onclick="sortTable('playersTable',3)">Punten <span class="sort-icon">↕</span></th>
+            <th onclick="sortTable('playersTable',4)">Gevechten <span class="sort-icon">↕</span></th>
+            <th onclick="sortTable('playersTable',5)">Δ Punten <span class="sort-icon">↕</span></th>
+            <th>GB Niveau</th>
+          </tr>
+        </thead>
+        <tbody id="playersBody">
+          <tr><td colspan="7" style="text-align:center;padding:3rem;color:var(--text-muted);font-style:italic;">Geen data — importeer eerst spelerdata</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ── GUILD PAGE ── -->
+  <div class="page" id="page-guild">
+    <div class="stat-row">
+      <div class="stat-card">
+        <div class="stat-label">Gilde Rang</div>
+        <div class="stat-value" id="g-rank">—</div>
+        <div class="stat-sub" id="g-rank-sub">op server</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Gilde Punten</div>
+        <div class="stat-value" id="g-points">—</div>
+        <div class="stat-delta" id="g-delta">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Totale Leden</div>
+        <div class="stat-value" id="g-members">—</div>
+        <div class="stat-sub">actieve spelers</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Gilde Goederen</div>
+        <div class="stat-value" id="g-goods">—</div>
+        <div class="stat-sub">totale bijdrage</div>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <div class="table-header">
+        <div class="table-title">Gilde Leden</div>
+        <input class="search-box" type="text" placeholder="Zoek lid…" oninput="filterTable('guildTable', this.value)">
+      </div>
+      <table id="guildTable">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Speler</th>
+            <th>Rol</th>
+            <th>Era</th>
+            <th>Punten</th>
+            <th>Bijdrage FP</th>
+            <th>Goederen</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="guildBody">
+          <tr><td colspan="8" style="text-align:center;padding:3rem;color:var(--text-muted);font-style:italic;">Geen gilde data</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ── BUILDINGS PAGE ── -->
+  <div class="page" id="page-buildings">
+    <div class="section-title">Grote Gebouwen per Speler</div>
+    <div class="table-wrap">
+      <div class="table-header">
+        <div class="table-title">GB Overzicht</div>
+        <input class="search-box" type="text" placeholder="Zoek GB of speler…" oninput="filterTable('gbTable', this.value)">
+      </div>
+      <table id="gbTable">
+        <thead>
+          <tr>
+            <th onclick="sortTable('gbTable',0)"># <span class="sort-icon">↕</span></th>
+            <th onclick="sortTable('gbTable',1)">Speler <span class="sort-icon">↕</span></th>
+            <th onclick="sortTable('gbTable',2)">Groot Gebouw <span class="sort-icon">↕</span></th>
+            <th onclick="sortTable('gbTable',3)">Niveau <span class="sort-icon">↕</span></th>
+            <th>Voortgang</th>
+            <th onclick="sortTable('gbTable',5)">FP Investering <span class="sort-icon">↕</span></th>
+            <th>Era</th>
+          </tr>
+        </thead>
+        <tbody id="gbBody">
+          <tr><td colspan="7" style="text-align:center;padding:3rem;color:var(--text-muted);font-style:italic;">Geen GB data</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ── GBG PAGE ── -->
+  <div class="page" id="page-gbg">
+    <div class="stat-row">
+      <div class="stat-card">
+        <div class="stat-label">Sectoren Ingenomen</div>
+        <div class="stat-value" id="gbg-sectors">—</div>
+        <div class="stat-sub" id="gbg-league">huidige seizoen</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Totale Gevechten</div>
+        <div class="stat-value" id="gbg-battles">—</div>
+        <div class="stat-sub">alle GBG spelers</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Siegekampen</div>
+        <div class="stat-value" id="gbg-camps">—</div>
+        <div class="stat-sub">geplaatst</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Actieve Deelnemers</div>
+        <div class="stat-value" id="gbg-active">—</div>
+        <div class="stat-sub">van totaal leden</div>
+      </div>
+    </div>
+
+    <div class="gbg-grid">
+      <div class="gbg-card">
+        <div class="section-title" style="font-size:0.85rem;margin-bottom:1rem;">Top Vechters GBG</div>
+        <div id="gbgTop"></div>
+      </div>
+      <div class="gbg-card">
+        <div class="section-title" style="font-size:0.85rem;margin-bottom:1rem;">Kampplaatsers</div>
+        <div id="gbgCamps"></div>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <div class="table-header">
+        <div class="table-title">GBG Prestaties per Speler</div>
+        <input class="search-box" type="text" placeholder="Zoek speler…" oninput="filterTable('gbgTable', this.value)">
+      </div>
+      <table id="gbgTable">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Speler</th>
+            <th>Gevechten</th>
+            <th>Kampen</th>
+            <th>Sectoren</th>
+            <th>Δ vs Vorig</th>
+          </tr>
+        </thead>
+        <tbody id="gbgBody">
+          <tr><td colspan="6" style="text-align:center;padding:3rem;color:var(--text-muted);font-style:italic;">Geen GBG data</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ── PROGRESS PAGE ── -->
+  <div class="page" id="page-progress">
+    <div class="section-title">Individuele Progressie Over Tijd</div>
+    <div class="progress-chart">
+      <div class="sparkline-wrap" id="sparklineWrap">
+        <div class="empty-state" style="padding:2rem">
+          <p style="font-size:0.88rem">Importeer meerdere data-snapshots om progressie te zien</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-title">Puntenhistorie Tabel</div>
+    <div class="table-wrap">
+      <div class="table-header">
+        <div class="table-title">Groei per Speler</div>
+      </div>
+      <table id="progressTable">
+        <thead>
+          <tr id="progressHeader">
+            <th>Speler</th>
+          </tr>
+        </thead>
+        <tbody id="progressBody">
+          <tr><td style="text-align:center;padding:3rem;color:var(--text-muted);font-style:italic;">Geen progressie data</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</main>
+
+<!-- ── IMPORT MODAL ── -->
+<div class="modal-overlay" id="importModal">
+  <div class="modal">
+    <div class="modal-title">⚔ Data Importeren</div>
+
+    <div class="import-tabs">
+      <button class="import-tab active" onclick="switchImportTab('manual', this)">Handmatig</button>
+      <button class="import-tab" onclick="switchImportTab('json', this)">JSON / FoE Helper</button>
+      <button class="import-tab" onclick="switchImportTab('csv', this)">CSV Plakken</button>
+    </div>
+
+    <!-- MANUAL TAB -->
+    <div class="import-pane active" id="pane-manual">
+      <div class="hint-box">
+        Voeg spelers één voor één toe. Dit is handig voor privégebruik of kleine gildes.
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Gilde Naam</label>
+          <input class="form-input" id="f-guild-name" placeholder="bijv. De Ridders">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Wereld / Server</label>
+          <input class="form-input" id="f-world" placeholder="bijv. en1-Arvahall">
+        </div>
+      </div>
+
+      <div class="section-title" style="font-size:0.8rem;margin:1rem 0 0.75rem">Speler toevoegen</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Spelernaam</label>
+          <input class="form-input" id="f-pname" placeholder="Naam">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Era / Tijdperk</label>
+          <select class="form-select" id="f-era">
+            <option>Bronstijd</option>
+            <option>IJzertijd</option>
+            <option>Vroege Middeleeuwen</option>
+            <option>Hoge Middeleeuwen</option>
+            <option>Late Middeleeuwen</option>
+            <option>Koloniale Tijdperk</option>
+            <option>Industrieel Tijdperk</option>
+            <option>Progressief Tijdperk</option>
+            <option>Modern Tijdperk</option>
+            <option>Postmodern Tijdperk</option>
+            <option>Hedendaags Tijdperk</option>
+            <option>Morgen Tijdperk</option>
+            <option>Toekomstig Tijdperk</option>
+            <option>Archetijdperk</option>
+            <option>Oceanisch Tijdperk</option>
+            <option>Virtueel Tijdperk</option>
+            <option>Ruimtelijk Tijdperk</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Punten</label>
+          <input class="form-input" id="f-points" type="number" placeholder="0">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Gevechten</label>
+          <input class="form-input" id="f-battles" type="number" placeholder="0">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">GBG Gevechten</label>
+          <input class="form-input" id="f-gbg" type="number" placeholder="0">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Rol in Gilde</label>
+          <select class="form-select" id="f-role">
+            <option>Lid</option>
+            <option>Veteraan</option>
+            <option>Officier</option>
+            <option>Leider</option>
+          </select>
+        </div>
+      </div>
+      <button class="btn-primary" style="width:100%;margin-top:0.25rem" onclick="addPlayerManual()">＋ Speler Toevoegen</button>
+
+      <div id="playerList" style="margin-top:1rem;max-height:150px;overflow-y:auto;"></div>
+    </div>
+
+    <!-- JSON TAB -->
+    <div class="import-pane" id="pane-json">
+      <div class="hint-box">
+        Plak de JSON-export van <strong>FoE Helper</strong> of gebruik het onderstaande formaat. Data wordt samengevoegd met bestaande invoer.
+      </div>
+      <div class="form-group">
+        <label class="form-label">JSON Plakken</label>
+        <textarea class="form-textarea" id="f-json" placeholder='[
+  {
+    "name": "Speler1",
+    "era": "Industrieel Tijdperk",
+    "points": 1250000,
+    "battles": 4500,
+    "gbg_battles": 230,
+    "role": "Officier",
+    "fps_contributed": 1200,
+    "goods": 45000,
+    "great_buildings": [
+      { "name": "Arc", "level": 80 },
+      { "name": "Chateau Frontenac", "level": 60 }
+    ]
+  }
+]'></textarea>
+      </div>
+
+      <div style="margin-bottom:1rem">
+        <label class="form-label">Of upload JSON-bestand</label>
+        <div class="drop-zone" onclick="document.getElementById('f-file').click()" id="dropZone">
+          <svg width="32" height="32" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+          <p>Klik om JSON te selecteren</p>
+          <p style="font-size:0.75rem;margin-top:0.25rem">of sleep het bestand hierheen</p>
+        </div>
+        <input type="file" id="f-file" accept=".json" style="display:none" onchange="handleFileUpload(this)">
+      </div>
+    </div>
+
+    <!-- CSV TAB -->
+    <div class="import-pane" id="pane-csv">
+      <div class="hint-box">
+        Plak een tabel gekopieerd uit een spreadsheet (Tab-gescheiden). Eerste rij = kolomnamen:<br>
+        <code style="font-size:0.78rem">naam, era, punten, gevechten, gbg_gevechten, rol, fp_bijdrage, goederen</code>
+      </div>
+      <div class="form-group">
+        <label class="form-label">CSV / Tab-gescheiden Data</label>
+        <textarea class="form-textarea" id="f-csv" placeholder="Naam&#9;Era&#9;Punten&#9;Gevechten&#9;GBG&#9;Rol&#10;Speler1&#9;Industrieel&#9;1250000&#9;4500&#9;230&#9;Lid&#10;Speler2&#9;Toekomstig&#9;3200000&#9;8200&#9;480&#9;Officier"></textarea>
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn-secondary" onclick="closeImport()">Annuleren</button>
+      <button class="btn-primary" onclick="importData()">Data Laden ✓</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── WORLD MODAL ── -->
+<div class="modal-overlay" id="worldModal">
+  <div class="modal">
+    <div class="modal-title">🌍 Wereld Selecteren</div>
+    <div class="form-group">
+      <label class="form-label">Zoek wereld</label>
+      <input class="form-input" id="worldSearch" placeholder="bijv. Arvahall, en1…" oninput="filterWorlds(this.value)">
+    </div>
+    <div class="world-grid" id="worldGrid"></div>
+    <div class="btn-row">
+      <button class="btn-secondary" onclick="closeWorldModal()">Sluiten</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ──────────────────────────────────────────────
+// STATE
+// ──────────────────────────────────────────────
+let state = {
+  players: [],
+  guildName: '',
+  world: '',
+  gbg: {},
+  snapshots: [],
+  lastUpdated: null
+};
+
+let pendingPlayers = [];
+
+// ──────────────────────────────────────────────
+// NAVIGATION
+// ──────────────────────────────────────────────
+function showPage(id, btn) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+}
+
+function switchSubTab(section, tab, btn) {
+  btn.closest('.sub-tabs').querySelectorAll('.sub-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  if (section === 'players') renderPlayersTable(tab);
+}
+
+// ──────────────────────────────────────────────
+// IMPORT MODAL
+// ──────────────────────────────────────────────
+function openImport() { document.getElementById('importModal').classList.add('open'); }
+function closeImport() { document.getElementById('importModal').classList.remove('open'); }
+
+function switchImportTab(tab, btn) {
+  document.querySelectorAll('.import-tab').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.import-pane').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('pane-' + tab).classList.add('active');
+}
+
+function addPlayerManual() {
+  const name = document.getElementById('f-pname').value.trim();
+  if (!name) { alert('Vul een spelernaam in.'); return; }
+  const player = {
+    name,
+    era: document.getElementById('f-era').value,
+    points: parseInt(document.getElementById('f-points').value) || 0,
+    battles: parseInt(document.getElementById('f-battles').value) || 0,
+    gbg_battles: parseInt(document.getElementById('f-gbg').value) || 0,
+    role: document.getElementById('f-role').value,
+    fps_contributed: 0,
+    goods: 0,
+    great_buildings: []
+  };
+  pendingPlayers.push(player);
+  renderPendingList();
+  document.getElementById('f-pname').value = '';
+  document.getElementById('f-points').value = '';
+  document.getElementById('f-battles').value = '';
+  document.getElementById('f-gbg').value = '';
+}
+
+function renderPendingList() {
+  const el = document.getElementById('playerList');
+  if (!pendingPlayers.length) { el.innerHTML = ''; return; }
+  el.innerHTML = pendingPlayers.map((p, i) =>
+    `<div style="display:flex;justify-content:space-between;align-items:center;padding:0.4rem 0.75rem;background:var(--bg-dark);border-radius:4px;margin-bottom:0.4rem;font-size:0.85rem">
+      <span><strong>${p.name}</strong> <span style="color:var(--text-muted)">${p.era}</span></span>
+      <span style="color:var(--gold-light);font-family:'Barlow Condensed',sans-serif;font-weight:700">${fmt(p.points)} pts</span>
+      <button onclick="pendingPlayers.splice(${i},1);renderPendingList()" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:1rem;padding:0 0.25rem">×</button>
+    </div>`
+  ).join('');
+}
+
+function handleFileUpload(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => { document.getElementById('f-json').value = e.target.result; };
+  reader.readAsText(file);
+}
+
+function importData() {
+  const activeTab = document.querySelector('.import-tab.active').textContent.trim();
+
+  if (activeTab === 'Handmatig') {
+    if (pendingPlayers.length === 0) { alert('Voeg eerst spelers toe.'); return; }
+    const gn = document.getElementById('f-guild-name').value.trim();
+    const wd = document.getElementById('f-world').value.trim();
+    if (gn) state.guildName = gn;
+    if (wd) { state.world = wd; document.getElementById('worldBtn').textContent = '🌍 ' + wd; }
+    state.players = [...state.players, ...pendingPlayers];
+    pendingPlayers = [];
+    renderPendingList();
+  } else if (activeTab === 'JSON / FoE Helper') {
+    try {
+      const raw = document.getElementById('f-json').value.trim();
+      const parsed = JSON.parse(raw);
+      const players = Array.isArray(parsed) ? parsed : parsed.players || [];
+      if (parsed.guild) state.guildName = parsed.guild;
+      if (parsed.world) { state.world = parsed.world; document.getElementById('worldBtn').textContent = '🌍 ' + parsed.world; }
+      state.players = [...state.players, ...players];
+    } catch(e) { alert('Ongeldige JSON: ' + e.message); return; }
+  } else if (activeTab === 'CSV Plakken') {
+    const csv = document.getElementById('f-csv').value.trim();
+    const rows = csv.split('\n').map(r => r.split('\t'));
+    const headers = rows[0].map(h => h.trim().toLowerCase());
+    const players = rows.slice(1).map(row => {
+      const obj = {};
+      headers.forEach((h, i) => obj[h] = row[i]?.trim() || '');
+      return {
+        name: obj['naam'] || obj['name'] || 'Onbekend',
+        era: obj['era'] || '—',
+        points: parseInt((obj['punten'] || obj['points'] || '0').replace(/\D/g,'')) || 0,
+        battles: parseInt((obj['gevechten'] || obj['battles'] || '0').replace(/\D/g,'')) || 0,
+        gbg_battles: parseInt((obj['gbg'] || obj['gbg_gevechten'] || '0').replace(/\D/g,'')) || 0,
+        role: obj['rol'] || obj['role'] || 'Lid',
+        fps_contributed: parseInt((obj['fp_bijdrage'] || '0').replace(/\D/g,'')) || 0,
+        goods: parseInt((obj['goederen'] || obj['goods'] || '0').replace(/\D/g,'')) || 0,
+        great_buildings: []
+      };
+    }).filter(p => p.name !== 'Onbekend' || true);
+    state.players = [...state.players, ...players];
+  }
+
+  state.lastUpdated = new Date();
+  // Save snapshot for progress
+  state.snapshots.push({ date: state.lastUpdated.toLocaleDateString('nl-NL'), players: JSON.parse(JSON.stringify(state.players)) });
+
+  closeImport();
+  renderAll();
+}
+
+// ──────────────────────────────────────────────
+// RENDER
+// ──────────────────────────────────────────────
+function renderAll() {
+  if (!state.players.length) return;
+
+  document.getElementById('lastUpdated').style.display = 'block';
+  document.getElementById('updateTime').textContent = state.lastUpdated.toLocaleString('nl-NL');
+  document.getElementById('overviewEmpty').style.display = 'none';
+  document.getElementById('overviewContent').style.display = 'block';
+
+  const sorted = [...state.players].sort((a,b) => b.points - a.points);
+  const totalBattles = state.players.reduce((s, p) => s + (p.battles||0), 0);
+  const totalGBG = state.players.reduce((s, p) => s + (p.gbg_battles||0), 0);
+
+  // Overview stats
+  document.getElementById('ov-points').textContent = fmt(sorted[0]?.points || 0);
+  document.getElementById('ov-points-rank').textContent = state.guildName || 'Jouw Gilde';
+  document.getElementById('ov-members').textContent = state.players.length;
+  document.getElementById('ov-members-sub').textContent = 'geregistreerde spelers';
+  document.getElementById('ov-top-player').textContent = sorted[0]?.name || '—';
+  document.getElementById('ov-top-sub').textContent = sorted[0]?.era || '';
+  document.getElementById('ov-gbg').textContent = totalGBG > 0 ? fmt(totalGBG) : '—';
+  document.getElementById('ov-gbg-sub').textContent = 'totale GBG gevechten';
+  document.getElementById('ov-battles').textContent = fmt(totalBattles);
+  document.getElementById('ov-battles-sub').textContent = 'totale gevechten';
+
+  // Guild stats
+  document.getElementById('g-rank').textContent = '—';
+  document.getElementById('g-points').textContent = fmt(state.players.reduce((s,p) => s + (p.points||0), 0));
+  document.getElementById('g-members').textContent = state.players.length;
+  document.getElementById('g-goods').textContent = fmt(state.players.reduce((s,p) => s + (p.goods||0), 0));
+  document.getElementById('g-delta').innerHTML = '';
+
+  // GBG stats
+  const gbgSorted = [...state.players].sort((a,b) => (b.gbg_battles||0) - (a.gbg_battles||0));
+  document.getElementById('gbg-battles').textContent = fmt(totalGBG);
+  document.getElementById('gbg-sectors').textContent = state.gbg.sectors || '—';
+  document.getElementById('gbg-camps').textContent = state.players.reduce((s,p) => s + (p.gbg_camps||0), 0) || '—';
+  document.getElementById('gbg-active').textContent = state.players.filter(p => (p.gbg_battles||0) > 0).length;
+
+  // Top 5 Overview
+  const top5body = document.getElementById('overviewTop5');
+  top5body.innerHTML = sorted.slice(0, 5).map((p, i) => `
+    <tr>
+      <td><span class="rank-badge rank-${i < 3 ? i+1 : 'n'}">${i+1}</span></td>
+      <td><span class="player-name">${esc(p.name)}</span></td>
+      <td><span class="era-badge">${esc(p.era)}</span></td>
+      <td class="num">${fmt(p.points)}</td>
+      <td class="num">${fmt(p.battles||0)}</td>
+      <td class="num ${(p.delta||0) >= 0 ? 'num-positive' : 'num-negative'}">${(p.delta||0) > 0 ? '+' : ''}${fmt(p.delta||0)}</td>
+    </tr>`).join('');
+
+  renderPlayersTable('ranking');
+  renderGuildTable();
+  renderGBTable();
+  renderGBGSection();
+  renderProgressSection();
+}
+
+function renderPlayersTable(mode) {
+  const body = document.getElementById('playersBody');
+  const title = document.getElementById('playersTableTitle');
+  let sorted;
+  if (mode === 'battles') {
+    sorted = [...state.players].sort((a,b) => (b.battles||0) - (a.battles||0));
+    title.textContent = 'Gevechten Ranking';
+  } else if (mode === 'eras') {
+    sorted = [...state.players].sort((a,b) => a.era.localeCompare(b.era));
+    title.textContent = 'Spelers per Era';
+  } else {
+    sorted = [...state.players].sort((a,b) => b.points - a.points);
+    title.textContent = 'Speler Rankings';
+  }
+  if (!sorted.length) { body.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:3rem;color:var(--text-muted)">Geen data</td></tr>'; return; }
+  body.innerHTML = sorted.map((p, i) => {
+    const totalGB = (p.great_buildings || []).reduce((s, gb) => s + (gb.level||0), 0);
+    return `<tr>
+      <td><span class="rank-badge rank-${i < 3 ? i+1 : 'n'}">${i+1}</span></td>
+      <td><span class="player-name">${esc(p.name)}</span></td>
+      <td><span class="era-badge">${esc(p.era)}</span></td>
+      <td class="num">${fmt(p.points)}</td>
+      <td class="num">${fmt(p.battles||0)}</td>
+      <td class="num ${(p.delta||0) >= 0 ? 'num-positive' : 'num-negative'}">${(p.delta||0) > 0 ? '+' : ''}${fmt(p.delta||0)}</td>
+      <td class="num">${totalGB > 0 ? '⭐ ' + totalGB : '—'}</td>
+    </tr>`;
+  }).join('');
+}
+
+function renderGuildTable() {
+  const body = document.getElementById('guildBody');
+  const sorted = [...state.players].sort((a,b) => b.points - a.points);
+  if (!sorted.length) return;
+  const roleColor = { Leider: 'tag-gold', Officier: 'tag-orange', Veteraan: 'tag-blue', Lid: '' };
+  body.innerHTML = sorted.map((p, i) => `
+    <tr>
+      <td><span class="rank-badge rank-${i < 3 ? i+1 : 'n'}">${i+1}</span></td>
+      <td><span class="player-name">${esc(p.name)}</span></td>
+      <td><span class="inline-tag ${roleColor[p.role] || ''}">${esc(p.role)}</span></td>
+      <td><span class="era-badge">${esc(p.era)}</span></td>
+      <td class="num">${fmt(p.points)}</td>
+      <td class="num">${fmt(p.fps_contributed||0)}</td>
+      <td class="num">${fmt(p.goods||0)}</td>
+      <td><span class="status-dot" style="background:var(--green)"></span><span style="font-size:0.8rem;color:var(--text-muted)">Actief</span></td>
+    </tr>`).join('');
+}
+
+function renderGBTable() {
+  const body = document.getElementById('gbBody');
+  const rows = [];
+  state.players.forEach(p => {
+    (p.great_buildings || []).forEach(gb => {
+      rows.push({ player: p.name, gb: gb.name, level: gb.level||0, fp: gb.fp_invested||0, era: gb.era||p.era, progress: gb.progress||0 });
+    });
+  });
+  if (!rows.length) { body.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:3rem;color:var(--text-muted)">Geen GB data — voeg great_buildings toe aan spelerdata</td></tr>'; return; }
+  rows.sort((a,b) => b.level - a.level);
+  body.innerHTML = rows.map((r, i) => `
+    <tr>
+      <td><span class="rank-badge rank-n">${i+1}</span></td>
+      <td><span class="player-name">${esc(r.player)}</span></td>
+      <td class="gb-name">🏛 ${esc(r.gb)}</td>
+      <td><span class="gb-lvl-num">${r.level}</span></td>
+      <td>
+        <div class="gb-bar-wrap"><div class="gb-bar" style="width:${r.progress}%"></div></div>
+        <span style="font-size:0.72rem;color:var(--text-muted)">${r.progress}%</span>
+      </td>
+      <td class="num">${fmt(r.fp)}</td>
+      <td><span class="era-badge">${esc(r.era)}</span></td>
+    </tr>`).join('');
+}
+
+function renderGBGSection() {
+  const gbgSorted = [...state.players].sort((a,b) => (b.gbg_battles||0) - (a.gbg_battles||0));
+  const campSorted = [...state.players].sort((a,b) => (b.gbg_camps||0) - (a.gbg_camps||0));
+
+  const renderMini = (arr, key) => arr.slice(0, 8).map((p, i) => `
+    <div class="gbg-player-row">
+      <div class="gbg-avatar">${p.name.substring(0,2).toUpperCase()}</div>
+      <div class="gbg-player-info">
+        <div class="gbg-player-name">${esc(p.name)}</div>
+        <div class="gbg-player-meta">${esc(p.era)}</div>
+      </div>
+      <div class="gbg-stat">${fmt(p[key]||0)}</div>
+    </div>`).join('');
+
+  document.getElementById('gbgTop').innerHTML = renderMini(gbgSorted, 'gbg_battles') || '<p style="color:var(--text-muted);font-size:0.85rem">Geen GBG data</p>';
+  document.getElementById('gbgCamps').innerHTML = renderMini(campSorted.filter(p => p.gbg_camps > 0), 'gbg_camps') || '<p style="color:var(--text-muted);font-size:0.85rem">Geen kampdata</p>';
+
+  const body = document.getElementById('gbgBody');
+  body.innerHTML = gbgSorted.map((p, i) => `
+    <tr>
+      <td><span class="rank-badge rank-${i < 3 ? i+1 : 'n'}">${i+1}</span></td>
+      <td><span class="player-name">${esc(p.name)}</span></td>
+      <td class="num">${fmt(p.gbg_battles||0)}</td>
+      <td class="num">${fmt(p.gbg_camps||0)}</td>
+      <td class="num">${fmt(p.gbg_sectors||0)}</td>
+      <td class="num ${(p.gbg_delta||0) >= 0 ? 'num-positive' : 'num-negative'}">${(p.gbg_delta||0) > 0 ? '+' : ''}${fmt(p.gbg_delta||0)}</td>
+    </tr>`).join('');
+}
+
+function renderProgressSection() {
+  if (state.snapshots.length < 1) return;
+  const wrap = document.getElementById('sparklineWrap');
+  const sorted = [...state.players].sort((a,b) => b.points - a.points);
+
+  wrap.innerHTML = sorted.slice(0, 12).map(player => {
+    const history = state.snapshots.map(snap => {
+      const found = snap.players.find(p => p.name === player.name);
+      return found ? found.points : 0;
+    });
+    const latest = history[history.length - 1];
+    const first = history[0];
+    const growth = latest - first;
+    return `<div class="sparkline-card">
+      <div class="sparkline-header">
+        <div>
+          <div class="sparkline-name">${esc(player.name)}</div>
+          <div style="font-size:0.75rem;color:var(--text-muted)">${esc(player.era)}</div>
+        </div>
+        <div>
+          <div class="sparkline-total">${fmt(latest)}</div>
+          <div style="font-size:0.75rem;color:${growth >= 0 ? 'var(--green)' : 'var(--red)'}">${growth >= 0 ? '+' : ''}${fmt(growth)}</div>
+        </div>
+      </div>
+      <canvas class="sparkline" id="spark-${player.name.replace(/\s/g,'_')}" data-history="${history.join(',')}"></canvas>
+    </div>`;
+  }).join('');
+
+  // Draw sparklines
+  setTimeout(() => {
+    document.querySelectorAll('canvas.sparkline').forEach(canvas => {
+      const data = canvas.dataset.history.split(',').map(Number);
+      drawSparkline(canvas, data);
+    });
+  }, 50);
+}
+
+function drawSparkline(canvas, data) {
+  const rect = canvas.getBoundingClientRect();
+  const w = rect.width || 260;
+  const h = 48;
+  canvas.width = w * window.devicePixelRatio;
+  canvas.height = h * window.devicePixelRatio;
+  const ctx = canvas.getContext('2d');
+  ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+  if (data.length < 2) {
+    ctx.fillStyle = 'rgba(201,168,76,0.3)';
+    ctx.beginPath(); ctx.arc(w/2, h/2, 4, 0, Math.PI*2); ctx.fill();
+    return;
+  }
+  const min = Math.min(...data), max = Math.max(...data);
+  const range = max - min || 1;
+  const pts = data.map((v, i) => ({
+    x: (i / (data.length - 1)) * w,
+    y: h - 4 - ((v - min) / range) * (h - 8)
+  }));
+  // Fill
+  const grad = ctx.createLinearGradient(0, 0, 0, h);
+  grad.addColorStop(0, 'rgba(201,168,76,0.25)');
+  grad.addColorStop(1, 'rgba(201,168,76,0)');
+  ctx.beginPath();
+  ctx.moveTo(pts[0].x, h);
+  pts.forEach(p => ctx.lineTo(p.x, p.y));
+  ctx.lineTo(pts[pts.length-1].x, h);
+  ctx.closePath();
+  ctx.fillStyle = grad; ctx.fill();
+  // Line
+  ctx.beginPath();
+  ctx.moveTo(pts[0].x, pts[0].y);
+  pts.forEach(p => ctx.lineTo(p.x, p.y));
+  ctx.strokeStyle = '#c9a84c';
+  ctx.lineWidth = 2;
+  ctx.lineJoin = 'round';
+  ctx.stroke();
+  // Dot
+  const last = pts[pts.length-1];
+  ctx.beginPath();
+  ctx.arc(last.x, last.y, 3.5, 0, Math.PI*2);
+  ctx.fillStyle = '#e8c97a'; ctx.fill();
+}
+
+// ──────────────────────────────────────────────
+// TABLE HELPERS
+// ──────────────────────────────────────────────
+function filterTable(tableId, query) {
+  const q = query.toLowerCase();
+  document.querySelectorAll('#' + tableId + ' tbody tr').forEach(tr => {
+    tr.style.display = tr.textContent.toLowerCase().includes(q) ? '' : 'none';
+  });
+}
+
+let sortDir = {};
+function sortTable(tableId, col) {
+  const table = document.getElementById(tableId);
+  const tbody = table.querySelector('tbody');
+  const rows = Array.from(tbody.querySelectorAll('tr'));
+  const key = tableId + '_' + col;
+  sortDir[key] = !sortDir[key];
+  rows.sort((a, b) => {
+    const av = a.cells[col]?.textContent.trim() || '';
+    const bv = b.cells[col]?.textContent.trim() || '';
+    const an = parseFloat(av.replace(/[^0-9.-]/g,''));
+    const bn = parseFloat(bv.replace(/[^0-9.-]/g,''));
+    const cmp = isNaN(an) || isNaN(bn) ? av.localeCompare(bv) : an - bn;
+    return sortDir[key] ? cmp : -cmp;
+  });
+  rows.forEach(r => tbody.appendChild(r));
+  table.querySelectorAll('thead th').forEach((th, i) => {
+    th.classList.remove('sort-asc', 'sort-desc');
+    if (i === col) th.classList.add(sortDir[key] ? 'sort-asc' : 'sort-desc');
+    const icon = th.querySelector('.sort-icon');
+    if (icon) icon.textContent = i === col ? (sortDir[key] ? '↑' : '↓') : '↕';
+  });
+}
+
+// ──────────────────────────────────────────────
+// WORLD MODAL
+// ──────────────────────────────────────────────
+const WORLDS = [
+  ...['Arvahall','Brisgard','Cirgard','Dinegu','East-Nagach','Fel Dranghyr','Greifental','Houndsmoor','Jaims','Korch','Langendorn','Mount Killmore','Noarsil','Odhrorvar','Parkog','Rugnir','Sinerania','Tuulech','Uceria','Vingrid'].map((w,i) => ({name:w, server:`en${i+1}`, region:'International'})),
+  ...['Arvahall','Brisgard','Cirgard','Dinegu','East-Nagach','Fel Dranghyr','Greifental','Houndsmoor','Jaims','Korch','Langendorn','Mount Killmore','Noarsil','Odhrorvar','Parkog'].map((w,i) => ({name:w, server:`de${i+1}`, region:'Duitsland'})),
+  ...['Arvahall','Brisgard','Cirgard','Dinegu','East-Nagach','Fel Dranghyr','Greifental','Houndsmoor','Jaims','Korch'].map((w,i) => ({name:w, server:`nl${i+1}`, region:'Nederland'})),
+];
+
+function openWorldModal() {
+  renderWorldGrid(WORLDS);
+  document.getElementById('worldModal').classList.add('open');
+}
+function closeWorldModal() { document.getElementById('worldModal').classList.remove('open'); }
+function filterWorlds(q) { renderWorldGrid(WORLDS.filter(w => (w.name+w.server+w.region).toLowerCase().includes(q.toLowerCase()))); }
+function renderWorldGrid(list) {
+  document.getElementById('worldGrid').innerHTML = list.map(w =>
+    `<div class="world-item ${state.world === w.server+'-'+w.name ? 'selected' : ''}" onclick="selectWorld('${w.server}','${w.name}')">
+      ${w.name}
+      <span class="world-server">${w.server} · ${w.region}</span>
+    </div>`).join('');
+}
+function selectWorld(server, name) {
+  state.world = server + '-' + name;
+  document.getElementById('worldBtn').textContent = '🌍 ' + server.toUpperCase() + ' · ' + name;
+  closeWorldModal();
+}
+
+// ──────────────────────────────────────────────
+// UTILS
+// ──────────────────────────────────────────────
+function fmt(n) {
+  if (n === null || n === undefined || isNaN(n)) return '—';
+  if (Math.abs(n) >= 1000000) return (n/1000000).toFixed(1) + 'M';
+  if (Math.abs(n) >= 1000) return (n/1000).toFixed(1) + 'K';
+  return n.toString();
+}
+function esc(s) {
+  if (!s) return '';
+  return s.toString().replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// Drag & drop
+const dz = document.getElementById('dropZone');
+dz.addEventListener('dragover', e => { e.preventDefault(); dz.style.borderColor = 'var(--gold)'; });
+dz.addEventListener('dragleave', () => { dz.style.borderColor = ''; });
+dz.addEventListener('drop', e => {
+  e.preventDefault(); dz.style.borderColor = '';
+  const file = e.dataTransfer.files[0];
+  if (file) { const r = new FileReader(); r.onload = ev => { document.getElementById('f-json').value = ev.target.result; }; r.readAsText(file); }
+});
+
+// Close modals on overlay click
+document.getElementById('importModal').addEventListener('click', function(e) { if (e.target === this) closeImport(); });
+document.getElementById('worldModal').addEventListener('click', function(e) { if (e.target === this) closeWorldModal(); });
+
+// Load demo data automatically for a nice first impression
+(function loadDemo() {
+  const demo = [
+    { name: "Koningsmantel", era: "Virtueel Tijdperk", points: 4850000, battles: 12450, gbg_battles: 890, gbg_camps: 45, role: "Leider", fps_contributed: 4200, goods: 125000, great_buildings: [{name:"Arc",level:80,progress:45},{name:"Chateau Frontenac",level:72,progress:60},{name:"Tempel van Artemis",level:55,progress:30}] },
+    { name: "IronsideX", era: "Ruimtelijk Tijdperk", points: 3920000, battles: 9800, gbg_battles: 1240, gbg_camps: 62, role: "Officier", fps_contributed: 3800, goods: 98000, great_buildings: [{name:"Arc",level:80,progress:80},{name:"Observatorium",level:65,progress:20}] },
+    { name: "DawnBreaker", era: "Toekomstig Tijdperk", points: 2750000, battles: 7200, gbg_battles: 680, gbg_camps: 28, role: "Veteraan", fps_contributed: 2100, goods: 67000, great_buildings: [{name:"Alcatraz",level:90,progress:15},{name:"Arc",level:70,progress:50}] },
+    { name: "Valeria Storm", era: "Toekomstig Tijdperk", points: 2480000, battles: 6400, gbg_battles: 520, gbg_camps: 19, role: "Officier", fps_contributed: 1900, goods: 52000, great_buildings: [{name:"Arc",level:65,progress:70}] },
+    { name: "GoldenEagle", era: "Morgen Tijdperk", points: 1870000, battles: 5100, gbg_battles: 390, gbg_camps: 12, role: "Veteraan", fps_contributed: 1400, goods: 38000, great_buildings: [{name:"Arc",level:58,progress:40}] },
+    { name: "NightShade", era: "Hedendaags Tijdperk", points: 1540000, battles: 4300, gbg_battles: 310, gbg_camps: 8, role: "Lid", fps_contributed: 980, goods: 24000, great_buildings: [{name:"Arc",level:45,progress:60}] },
+    { name: "ThorHammer", era: "Morgen Tijdperk", points: 1320000, battles: 3900, gbg_battles: 280, gbg_camps: 5, role: "Lid", fps_contributed: 750, goods: 18000, great_buildings: [] },
+    { name: "CrystalWyvern", era: "Postmodern Tijdperk", points: 980000, battles: 2800, gbg_battles: 180, gbg_camps: 3, role: "Lid", fps_contributed: 560, goods: 12000, great_buildings: [] },
+  ];
+  state.players = demo;
+  state.guildName = "Orde van de Gouden Leeuw";
+  state.world = "nl1-Arvahall";
+  document.getElementById('worldBtn').textContent = '🌍 NL1 · Arvahall';
+  state.lastUpdated = new Date();
+  state.snapshots = [
+    { date: new Date(Date.now() - 7*24*3600*1000).toLocaleDateString('nl-NL'), players: demo.map(p => ({...p, points: Math.round(p.points * 0.94)})) },
+    { date: new Date(Date.now() - 3*24*3600*1000).toLocaleDateString('nl-NL'), players: demo.map(p => ({...p, points: Math.round(p.points * 0.97)})) },
+    { date: new Date().toLocaleDateString('nl-NL'), players: JSON.parse(JSON.stringify(demo)) },
+  ];
+  renderAll();
+})();
+</script>
+</body>
+</html>gh
